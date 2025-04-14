@@ -1,33 +1,34 @@
 package com.unicesumar.service;
 
 import com.unicesumar.entities.Product;
+import com.unicesumar.entities.dto.ProductDTO;
 import com.unicesumar.repository.ProductRepository;
-import com.unicesumar.views.ProductView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ProductService {
 
     private final ProductRepository repository;
-    private final ProductView view;
 
-    public ProductService(ProductRepository repository, ProductView view) {
+    public ProductService(ProductRepository repository) {
         this.repository = repository;
-        this.view = view;
     }
 
-    public void printAllProducts() {
+    public List<Product> getAll() {
         List<Product> productList = this.repository.findAll();
 
         if (productList.isEmpty()) {
             System.out.println("Operacao cancelada: Nao existem produtos cadastrados");
-            return;
+            return new ArrayList<Product>();
         }
 
-        this.view.showProducts(productList);
+        return productList;
     }
 
-    public void createProduct() {
-        this.repository.save(this.view.requestProduct());
+    public void createProduct(ProductDTO dto) {
+        Product product = new Product(dto);
+
+        this.repository.save(product);
     }
 }

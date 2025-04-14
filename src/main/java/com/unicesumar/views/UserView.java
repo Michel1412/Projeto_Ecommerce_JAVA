@@ -1,6 +1,7 @@
 package com.unicesumar.views;
 
 import com.unicesumar.entities.User;
+import com.unicesumar.entities.dto.UserDTO;
 
 import java.util.List;
 import java.util.Scanner;
@@ -19,7 +20,7 @@ public class UserView {
         System.out.println("|----------------------------------------|");
     }
 
-    public User requestUser() {
+    public UserDTO requestUser() {
         System.out.print("Criando novo Usuario:\nDigite o nome do Usuario: ");
         String nome = sc.nextLine();
 
@@ -29,6 +30,6 @@ public class UserView {
         System.out.print("\nDigite o senha do Usuario: ");
         String senha = sc.nextLine();
 
-        return new User(nome, email, senha);
+        return new UserDTO(nome, email, senha);
     }
 }

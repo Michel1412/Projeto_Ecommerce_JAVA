@@ -1,33 +1,34 @@
 package com.unicesumar.service;
 
 import com.unicesumar.entities.User;
+import com.unicesumar.entities.dto.UserDTO;
 import com.unicesumar.repository.UserRepository;
-import com.unicesumar.views.UserView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class UserService {
 
     private final UserRepository repository;
-    private final UserView view;
 
-    public UserService(UserRepository repository, UserView view) {
+    public UserService(UserRepository repository) {
         this.repository = repository;
-        this.view = view;
     }
 
-    public void showAllUsers() {
+    public List<User> getAll() {
         List<User> userList = this.repository.findAll();
 
         if (userList.isEmpty()) {
             System.out.println("Operacao cancelada: Nao existem usuarios cadastrados");
-            return;
+            return new ArrayList<User>();
         }
 
-        this.view.showUsers(userList);
+        return userList;
     }
 
-    public void createUser() {
-        this.repository.save(this.view.requestUser());
+    public void createUser(UserDTO dto) {
+        User user = new User(dto);
+
+        this.repository.save(user);
     }
 }

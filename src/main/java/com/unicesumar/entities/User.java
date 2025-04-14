@@ -1,5 +1,7 @@
 package com.unicesumar.entities;
 
+import com.unicesumar.entities.dto.UserDTO;
+
 import java.util.UUID;
 
 public class User extends Entity {
@@ -8,10 +10,10 @@ public class User extends Entity {
     private String email;
     private String password;
 
-    public User(String name, String email, String password) {
-        this.name = name;
-        this.email = email;
-        this.password = password;
+    public User(UserDTO dto) {
+        this.name = dto.getName();
+        this.email = dto.getEmail();
+        this.password = dto.getPassword();
     }
 
     public User(UUID uuid, String name, String email, String password) {
@@ -34,7 +36,7 @@ public class User extends Entity {
     }
 
     public String toString() {
-        String userString = String.format("|  %s - %s", this.name, this.email);
+        String userString = String.format("| %s - %s", this.name, this.email);
 
         while (userString.length() < 41) {
             userString = userString.concat(" ");

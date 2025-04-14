@@ -1,5 +1,7 @@
 package com.unicesumar.entities;
 
+import com.unicesumar.entities.dto.ProductDTO;
+
 import java.util.UUID;
 
 public class Product extends Entity {
@@ -12,9 +14,9 @@ public class Product extends Entity {
         this.price = price;
     }
 
-    public Product(String name, double price) {
-        this.name = name;
-        this.price = price;
+    public Product(ProductDTO dto) {
+        this.name = dto.getNome();
+        this.price = dto.getPreco();
     }
 
     public String getName() {
