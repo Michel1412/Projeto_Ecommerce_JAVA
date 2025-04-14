@@ -75,38 +75,19 @@ public class ProductRepository implements EntityRepository<Product> {
 
     @Override
     public void deleteById(UUID id) {
-        String query = "DELETE FROM products WHERE uuid = ?";
+        String productQuery = "DELETE FROM products WHERE uuid = ?";
+        String saleProductsQuery = "DELETE FROM sale_products WHERE product_id = ?";
         try {
-            PreparedStatement stmt = this.connection.prepareStatement(query);
+            PreparedStatement saleProductsStmt = this.connection.prepareStatement(saleProductsQuery);
+            saleProductsStmt.setString(1, id.toString());
+            saleProductsStmt.executeUpdate();
+
+            PreparedStatement stmt = this.connection.prepareStatement(productQuery);
             stmt.setString(1, id.toString());
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
 
-    }
-
-    public Optional<List<Product>> findAllBySaleId(UUID saleId) {
-        List<Product> products = new LinkedList<>();
-
-        String query = "SELECT p.uuid, p.name, p.price FROM products p LEFT JOIN sale_products sp ON p.uuid = sp.product_id WHERE uuid in (SELECT product_id from sp WHERE sale_id = ?)";
-        try {
-            PreparedStatement stmt = this.connection.prepareStatement(query);
-            stmt.setString(1, saleId.toString());
-            ResultSet resultSet = stmt.executeQuery();
-
-            while (resultSet.next()) {
-                Product product = new Product(
-                        UUID.fromString(resultSet.getString("uuid")),
-                        resultSet.getString("name"),
-                        resultSet.getDouble("price")
-                );
-                products.add(product);
-            }
-
-            return Optional.of(products);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
     }
 }

@@ -11,11 +11,9 @@ import java.util.*;
 public class SaleRepository implements EntityRepository<Sale> {
 
     private final Connection connection;
-    private final ProductRepository productRepository;
 
-    public SaleRepository(Connection connection, ProductRepository productRepository) {
+    public SaleRepository(Connection connection) {
         this.connection = connection;
-        this.productRepository = productRepository;
     }
 
     @Override
@@ -56,10 +54,9 @@ public class SaleRepository implements EntityRepository<Sale> {
             ResultSet resultSet = stmt.executeQuery();
 
             if (resultSet.next()) {
-                // converter a funcão do productRepository para receber apenas o id do Sale e fazer um join com o Product
-                Array productIds = resultSet.getArray("product_ids");
+                UUID saleId = UUID.fromString(resultSet.getString("uuid"));
 
-                Optional<List<Product>> listProducts = this.productRepository.findAllByListId(productIds);
+                Optional<List<Product>> optListProducts = this.findProductsBySaleId(saleId);
 
                 PaymentType paymentType = PaymentType.valueOf(resultSet.getString("payment_method"));
 
@@ -68,7 +65,7 @@ public class SaleRepository implements EntityRepository<Sale> {
                         UUID.fromString(resultSet.getString("user_id")),
                         PaymentMethodFactory.create(paymentType),
                         resultSet.getDate("sale_date"),
-                        listProducts.orElse(null)
+                        optListProducts.orElse(null)
                 ));
             }
         } catch (Exception e) {
@@ -76,6 +73,30 @@ public class SaleRepository implements EntityRepository<Sale> {
         }
 
         return Optional.empty();
+    }
+
+    private Optional<List<Product>> findProductsBySaleId(UUID saleId) {
+        List<Product> products = new LinkedList<>();
+
+        String query = "SELECT p.uuid, p.name, p.price FROM products p LEFT JOIN sale_products sp ON p.uuid = sp.product_id WHERE uuid in (SELECT product_id from sp WHERE sale_id = ?)";
+        try {
+            PreparedStatement stmt = this.connection.prepareStatement(query);
+            stmt.setString(1, saleId.toString());
+            ResultSet resultSet = stmt.executeQuery();
+
+            while (resultSet.next()) {
+                Product product = new Product(
+                        UUID.fromString(resultSet.getString("uuid")),
+                        resultSet.getString("name"),
+                        resultSet.getDouble("price")
+                );
+                products.add(product);
+            }
+
+            return Optional.of(products);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -86,29 +107,41 @@ public class SaleRepository implements EntityRepository<Sale> {
             PreparedStatement stmt = this.connection.prepareStatement(query);
             ResultSet resultSet = stmt.executeQuery();
 
-            UUID saleId = UUID.fromString(resultSet.getString("uuid"));
+            while (resultSet.next()) {
+                UUID saleId = UUID.fromString(resultSet.getString("uuid"));
 
-            Optional<List<Product>> optListProducts = this.productRepository.findAllBySaleId(saleId);
+                Optional<List<Product>> optListProducts = this.findProductsBySaleId(saleId);
+                PaymentType paymentType = PaymentType.valueOf(resultSet.getString("payment_method"));
 
-//            while (resultSet.next()) {
-//                Sale sale = new Sale(
-////                        UUID.fromString(resultSet.getString("uuid")),
-////                        resultSet.getString("name"),
-////                        resultSet.get("price"),
-////                        resultSet.getDate("date"),
-////                        optListProducts.orElse(null)
-//                );
-//                sales.add(sale);
-//            }
+                sales.add(new Sale(
+                        UUID.fromString(resultSet.getString("uuid")),
+                        UUID.fromString(resultSet.getString("user_id")),
+                        PaymentMethodFactory.create(paymentType),
+                        resultSet.getDate("sale_date"),
+                        optListProducts.orElse(null)
+                ));
+            }
+
+            return sales;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-
-        return sales;
     }
 
     @Override
     public void deleteById(UUID id) {
+        String saleQuery = "DELETE FROM sale WHERE uuid = ?";
+        String saleProductsQuery = "DELETE FROM sale_products WHERE sale_id = ?";
+        try {
+            PreparedStatement saleProductsStmt = this.connection.prepareStatement(saleProductsQuery);
+            saleProductsStmt.setString(1, id.toString());
+            saleProductsStmt.executeUpdate();
 
+            PreparedStatement stmt = this.connection.prepareStatement(saleQuery);
+            stmt.setString(1, id.toString());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
