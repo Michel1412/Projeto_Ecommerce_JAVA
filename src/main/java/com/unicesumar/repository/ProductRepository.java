@@ -2,10 +2,7 @@ package com.unicesumar.repository;
 
 import com.unicesumar.entities.Product;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.*;
 
 public class ProductRepository implements EntityRepository<Product> {
@@ -87,5 +84,29 @@ public class ProductRepository implements EntityRepository<Product> {
             throw new RuntimeException(e);
         }
 
+    }
+
+    public Optional<List<Product>> findAllBySaleId(UUID saleId) {
+        List<Product> products = new LinkedList<>();
+
+        String query = "SELECT p.uuid, p.name, p.price FROM products p LEFT JOIN sale_products sp ON p.uuid = sp.product_id WHERE uuid in (SELECT product_id from sp WHERE sale_id = ?)";
+        try {
+            PreparedStatement stmt = this.connection.prepareStatement(query);
+            stmt.setString(1, saleId.toString());
+            ResultSet resultSet = stmt.executeQuery();
+
+            while (resultSet.next()) {
+                Product product = new Product(
+                        UUID.fromString(resultSet.getString("uuid")),
+                        resultSet.getString("name"),
+                        resultSet.getDouble("price")
+                );
+                products.add(product);
+            }
+
+            return Optional.of(products);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

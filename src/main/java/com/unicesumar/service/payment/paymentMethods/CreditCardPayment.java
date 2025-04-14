@@ -1,4 +1,4 @@
-package com.unicesumar.paymentMethods;
+package com.unicesumar.service.payment.paymentMethods;
 
 public class CreditCardPayment implements PaymentMethod {
     @Override

@@ -3,6 +3,7 @@ package com.unicesumar.entities;
 import java.util.UUID;
 
 public class User extends Entity {
+
     private String name;
     private String email;
     private String password;

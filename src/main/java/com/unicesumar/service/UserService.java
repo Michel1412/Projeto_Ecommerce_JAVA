@@ -11,7 +11,6 @@ public class UserService {
     private final UserRepository repository;
     private final UserView view;
 
-
     public UserService(UserRepository repository, UserView view) {
         this.repository = repository;
         this.view = view;

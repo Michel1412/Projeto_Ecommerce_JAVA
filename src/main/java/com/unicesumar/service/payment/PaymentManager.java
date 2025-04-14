@@ -1,5 +1,5 @@
-package com.unicesumar;
-import com.unicesumar.paymentMethods.PaymentMethod;
+package com.unicesumar.service.payment;
+import com.unicesumar.service.payment.paymentMethods.PaymentMethod;
 
 public class PaymentManager {
     private PaymentMethod paymentMethod;
