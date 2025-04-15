@@ -88,6 +88,7 @@ public class Main {
                     Sale sale = null;
 
                     if (saleService.existsEmail(userEmail)) {
+
                         saleService.createSale(userEmail, saleView.requestProducts());
                     }
 

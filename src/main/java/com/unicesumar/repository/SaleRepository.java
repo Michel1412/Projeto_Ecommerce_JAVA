@@ -144,4 +144,17 @@ public class SaleRepository implements EntityRepository<Sale> {
             throw new RuntimeException(e);
         }
     }
+
+    public boolean existsByEmail(String email) {
+        String query = "SELECT 1 FROM users WHERE email = ? LIMIT 1";
+        try {
+            PreparedStatement stmt = this.connection.prepareStatement(query);
+            stmt.setString(1, email);
+            ResultSet resultSet = stmt.executeQuery();
+            return resultSet.next();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }
