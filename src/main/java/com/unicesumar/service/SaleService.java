@@ -26,6 +26,7 @@ public class SaleService {
 
 
     public void createSale(String email, List<Product> products) {
+        System.out.println("");
         Sale sale = new Sale(email,products);
         this.repository.save(sale);
 

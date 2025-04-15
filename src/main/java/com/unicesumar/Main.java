@@ -92,7 +92,7 @@ public class Main {
                         saleService.createSale(userEmail, saleView.requestProducts());
                     }
 
-                    saleView.showResume();
+                    saleView.showResume(sale);
                     break;
                 case 6:
                     saleView.showSales(saleService.getAll());

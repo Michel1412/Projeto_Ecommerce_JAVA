@@ -49,12 +49,12 @@ public class SaleView {
 
 
 
-    public void showResume() {
+    public void showResume(Sale sale) {
         System.out.println("Resumo da venda:");
-        System.out.println("Cliente: " +  );
-        System.out.println("Produtos: " +);
-        System.out.println("Valor total: " +);
-        System.out.println("Pagamento:" +);
+        System.out.println("Cliente: " + sale. );
+        System.out.println("Produtos: " + sale.getProducts());
+        System.out.println("Valor total: " + sale.total());
+        System.out.println("Pagamento:" + sale.getPaymentMethod());
         System.out.println("Venda registrada com sucesso!");
     }
 }
