@@ -54,4 +54,13 @@ public class Sale extends Entity {
         return "Sale.toString() : Falhouu";
     }
 
+    public double total(){
+        double total = 0;
+        for(Product product:products){
+            total+=product.getPrice();
+        }
+        return total;
+    }
+
+
 }

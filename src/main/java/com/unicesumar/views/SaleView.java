@@ -1,24 +1,60 @@
 package com.unicesumar.views;
 
+import com.unicesumar.entities.Product;
 import com.unicesumar.entities.Sale;
+import com.unicesumar.entities.dto.UserDTO;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 import java.util.UUID;
 
 public class SaleView {
 
+    private static final Scanner sc = new Scanner(System.in);
+
     public void showSales(List<Sale> sales) {
-//        sales.forEach(System.out::println);
+        sales.forEach(System.out::println);
     }
 
     public String requestEmail() {
-        return null;
+        System.out.print("\nDigite o email do Usuario: ");
+        return sc.nextLine();
     }
 
-    public List<UUID> requestProducts() {
-        return null;
+    public List<Product> requestProducts() {
+    List<Product> productIds = new ArrayList<>();
+    String input;
+
+    System.out.println("Digite o UUID dos produtos que deseja adicionar (digite '0' para finalizar):");
+
+    while(true)
+
+    {
+        System.out.print("UUID do produto: ");
+        input = sc.nextLine();
+
+        if (input.equals("0")) break;
+
+        try {
+            UUID productId = UUID.fromString(input);
+            productIds.add();
+        } catch (IllegalArgumentException e) {
+            System.out.println("UUID inválido, tente novamente.");
+        }
     }
 
-    public void showResume() {
+    return productIds;
+    }
+
+
+
+    public void showResume(Sale sale) {
+        System.out.println("Resumo da venda:");
+        System.out.println("Cliente: " + sale. );
+        System.out.println("Produtos: " + sale.getProducts());
+        System.out.println("Valor total: " + sale.total());
+        System.out.println("Pagamento:" + sale.getPaymentMethod());
+        System.out.println("Venda registrada com sucesso!");
     }
 }
