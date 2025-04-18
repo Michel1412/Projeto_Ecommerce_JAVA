@@ -1,7 +1,7 @@
 package com.unicesumar.repository;
 
-import com.unicesumar.entities.Product;
 import com.unicesumar.entities.Sale;
+import com.unicesumar.entities.User;
 import com.unicesumar.service.payment.PaymentMethodFactory;
 import com.unicesumar.service.payment.PaymentType;
 
@@ -18,14 +18,15 @@ public class SaleRepository implements EntityRepository<Sale> {
 
     @Override
     public void save(Sale entity) {
-        String saleQuery = "INSERT INTO sales VALUES (?, ?, ?)";
+        String saleQuery = "INSERT INTO sales VALUES (?, ?, ?, ?)";
         String saleProductsQuery = "INSERT INTO sale_products VALUES (?, ?)";
 
         try {
             PreparedStatement saleStmt = this.connection.prepareStatement(saleQuery);
             saleStmt.setString(1, entity.getUuid().toString());
             saleStmt.setString(2, entity.getUserId().toString());
-            saleStmt.setString(3, entity.getPaymentMethod().toString());
+            saleStmt.setString(3, entity.getPaymentMethod().getName());
+            saleStmt.setDate(4, entity.getSaleDate());
             saleStmt.executeUpdate();
 
             entity.getProducts().forEach(product -> {
@@ -54,18 +55,11 @@ public class SaleRepository implements EntityRepository<Sale> {
             ResultSet resultSet = stmt.executeQuery();
 
             if (resultSet.next()) {
-                UUID saleId = UUID.fromString(resultSet.getString("uuid"));
-
-                Optional<List<Product>> optListProducts = this.findProductsBySaleId(saleId);
-
-                PaymentType paymentType = PaymentType.valueOf(resultSet.getString("payment_method"));
-
                 return Optional.of(new Sale(
                         UUID.fromString(resultSet.getString("uuid")),
-                        UUID.fromString(resultSet.getString("user_id")),
-                        PaymentMethodFactory.create(paymentType),
-                        resultSet.getDate("sale_date"),
-                        optListProducts.orElse(null)
+                        this.findUserByUserId(UUID.fromString(resultSet.getString("user_id"))).orElse(null),
+                        PaymentMethodFactory.getByName(resultSet.getString("payment_method")),
+                        resultSet.getDate("sale_date")
                 ));
             }
         } catch (Exception e) {
@@ -75,28 +69,26 @@ public class SaleRepository implements EntityRepository<Sale> {
         return Optional.empty();
     }
 
-    private Optional<List<Product>> findProductsBySaleId(UUID saleId) {
-        List<Product> products = new LinkedList<>();
+    private Optional<User> findUserByUserId(UUID userId) {
+        String query = " SELECT * FROM users WHERE uuid = ? ";
 
-        String query = "SELECT p.uuid, p.name, p.price FROM products p LEFT JOIN sale_products sp ON p.uuid = sp.product_id WHERE uuid in (SELECT product_id from sp WHERE sale_id = ?)";
         try {
             PreparedStatement stmt = this.connection.prepareStatement(query);
-            stmt.setString(1, saleId.toString());
-            ResultSet resultSet = stmt.executeQuery();
-
-            while (resultSet.next()) {
-                Product product = new Product(
+            stmt.setString(1, userId.toString());ResultSet resultSet = stmt.executeQuery();
+            if (resultSet.next()) {
+                return Optional.of(new User(
                         UUID.fromString(resultSet.getString("uuid")),
                         resultSet.getString("name"),
-                        resultSet.getDouble("price")
-                );
-                products.add(product);
+                        resultSet.getString("email"),
+                        resultSet.getString("password")
+                ));
             }
-
-            return Optional.of(products);
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
+
+        return Optional.empty();
+
     }
 
     @Override
@@ -108,17 +100,11 @@ public class SaleRepository implements EntityRepository<Sale> {
             ResultSet resultSet = stmt.executeQuery();
 
             while (resultSet.next()) {
-                UUID saleId = UUID.fromString(resultSet.getString("uuid"));
-
-                Optional<List<Product>> optListProducts = this.findProductsBySaleId(saleId);
-                PaymentType paymentType = PaymentType.valueOf(resultSet.getString("payment_method"));
-
                 sales.add(new Sale(
-                        UUID.fromString(resultSet.getString("uuid")),
-                        UUID.fromString(resultSet.getString("user_id")),
-                        PaymentMethodFactory.create(paymentType),
-                        resultSet.getDate("sale_date"),
-                        optListProducts.orElse(null)
+                    UUID.fromString(resultSet.getString("id")),
+                    this.findUserByUserId(UUID.fromString(resultSet.getString("user_id"))).orElse(null),
+                    PaymentMethodFactory.getByName(resultSet.getString("payment_method")),
+                    resultSet.getDate("sale_date")
                 ));
             }
 
@@ -144,17 +130,4 @@ public class SaleRepository implements EntityRepository<Sale> {
             throw new RuntimeException(e);
         }
     }
-
-    public boolean existsByEmail(String email) {
-        String query = "SELECT 1 FROM users WHERE email = ? LIMIT 1";
-        try {
-            PreparedStatement stmt = this.connection.prepareStatement(query);
-            stmt.setString(1, email);
-            ResultSet resultSet = stmt.executeQuery();
-            return resultSet.next();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
 }

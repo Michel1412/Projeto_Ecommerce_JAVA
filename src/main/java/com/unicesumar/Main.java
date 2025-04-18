@@ -1,12 +1,17 @@
 package com.unicesumar;
 
+import com.unicesumar.entities.Product;
 import com.unicesumar.entities.Sale;
+import com.unicesumar.entities.User;
 import com.unicesumar.repository.ProductRepository;
 import com.unicesumar.repository.SaleRepository;
 import com.unicesumar.repository.UserRepository;
 import com.unicesumar.service.ProductService;
 import com.unicesumar.service.SaleService;
 import com.unicesumar.service.UserService;
+import com.unicesumar.service.payment.PaymentMethodFactory;
+import com.unicesumar.service.payment.PaymentType;
+import com.unicesumar.service.payment.paymentMethods.PaymentMethod;
 import com.unicesumar.views.ProductView;
 import com.unicesumar.views.SaleView;
 import com.unicesumar.views.UserView;
@@ -14,6 +19,8 @@ import com.unicesumar.views.UserView;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 
 public class Main {
@@ -54,7 +61,7 @@ public class Main {
         //services
         ProductService productService = new ProductService(productRepository);
         UserService userService = new UserService(userRepository);
-        SaleService saleService = new SaleService(saleRepository);
+        SaleService saleService = new SaleService(saleRepository, userService, productService);
 
         int option;
 
@@ -85,14 +92,42 @@ public class Main {
                     break;
                 case 5:
                     String userEmail = saleView.requestEmail();
-                    Sale sale = null;
+                    Optional<User> optUser = userService.findByEmail(userEmail);
 
-                    if (saleService.existsEmail(userEmail)) {
-
-                        saleService.createSale(userEmail, saleView.requestProducts());
+                    if (optUser.isEmpty()) {
+                        System.out.println("Operacao cancelada: Usuario invalido para email: " + userEmail);
+                        break;
                     }
 
-                    saleView.showResume(sale);
+                    productView.showProducts(productService.getAll());
+
+                    Optional<List<Product>> optProducts = saleService.validProductList(saleView.requestProducts());
+
+                    if (optProducts.isEmpty()) {
+                        System.out.println("Operacao cancelada: Erro ao buscar os produtos selecionado");
+                        break;
+                    }
+
+                    double amount = Sale.sumAmount(List.copyOf(optProducts.get()));
+
+                    Optional<PaymentType> optPaymentType = saleView.requestPaymentMethod();
+
+                    if (optPaymentType.isEmpty()) {
+                        System.out.println("Operacao cancelada: Erro ao selecionar o tipo do pagamento");
+                        break;
+                    }
+                    PaymentMethod paymentMethod = PaymentMethodFactory.create(optPaymentType.get());
+
+                    Optional<Sale> optSale = saleService.createSale(optUser.get(), optProducts.get(), amount, paymentMethod);
+
+                    if (optSale.isEmpty()) {
+                        System.out.println("Operacao cancelada: Erro ao criar uma venda verifique os dados passados");
+                        break;
+                    }
+
+                    saleView.showResume(optSale.get());
+                    System.out.println("\nVenda registrada com sucesso!");
+
                     break;
                 case 6:
                     saleView.showSales(saleService.getAll());
@@ -105,7 +140,7 @@ public class Main {
 
             }
 
-        } while (option != 5);
+        } while (option != 7);
 
         scanner.close();
         try {

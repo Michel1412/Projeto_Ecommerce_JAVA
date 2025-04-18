@@ -30,7 +30,7 @@ public class Product extends Entity {
     public String toString() {
         String productsString = String.format("| %s - %s - R$%.2f", getUuid().toString(), this.name, this.price);
 
-        while (productsString.length() < 41) {
+        while (productsString.length() < 84) {
             productsString = productsString.concat(" ");
         }
 

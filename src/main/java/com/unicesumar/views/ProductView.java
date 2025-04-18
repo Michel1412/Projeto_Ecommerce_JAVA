@@ -11,13 +11,13 @@ public class ProductView {
     private static final Scanner sc = new Scanner(System.in);
 
     public void showProducts(List<Product> listProduct) {
-        System.out.println("\nLista de Produtos:\n|----------------------------------------|");
+        System.out.println("\nLista de Produtos:\n|-----------------------------------------------------------------------------------|");
         listProduct.forEach(this::showProduct);
     }
 
     private void showProduct(Product product) {
         System.out.println(product.toString());
-        System.out.println("|----------------------------------------|");
+        System.out.println("|-----------------------------------------------------------------------------------|");
     }
 
     public ProductDTO requestProduct() {

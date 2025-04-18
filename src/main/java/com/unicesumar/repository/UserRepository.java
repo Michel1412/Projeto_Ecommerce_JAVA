@@ -89,7 +89,37 @@ public class UserRepository implements EntityRepository<User> {
         }
     }
 
+    public boolean existeByEmail(String email) {
+        String query = "SELECT * FROM users WHERE email = ?";
+        try {
+            PreparedStatement stmt = this.connection.prepareStatement(query);
+            stmt.setString(1, email.toLowerCase());
+            ResultSet result = stmt.executeQuery();
+            return result.next();
 
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
+    public Optional<User> findByEmail(String email) {
+        String query = "SELECT * FROM users WHERE email = ?";
+        try {
+            PreparedStatement stmt = this.connection.prepareStatement(query);
+            stmt.setString(1, email);
+            ResultSet resultSet = stmt.executeQuery();
+            if (resultSet.next()) {
+                return Optional.of(new User(
+                        UUID.fromString(resultSet.getString("uuid")),
+                        resultSet.getString("name"),
+                        resultSet.getString("email"),
+                        resultSet.getString("password")
+                ));
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
+        return Optional.empty();
+    }
 }

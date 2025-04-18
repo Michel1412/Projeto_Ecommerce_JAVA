@@ -2,59 +2,61 @@ package com.unicesumar.entities;
 
 import com.unicesumar.service.payment.paymentMethods.PaymentMethod;
 
-import java.util.Date;
+import java.sql.Date;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 public class Sale extends Entity {
 
-    private UUID user_id;
+    private User user;
     private PaymentMethod payment_method;
     private Date sale_date;
-    private List<Product> products;
+    private List<Product> products = new ArrayList<Product>();
 
-    public Sale(UUID user_id, PaymentMethod payment_method) {
-        this.user_id = user_id;
+    public Sale(User user, PaymentMethod payment_method) {
+        this.user = user;
         this.payment_method = payment_method;
+        this.sale_date = new Date(System.currentTimeMillis());
     }
 
-    public Sale(UUID uuid, UUID user_id, PaymentMethod payment_method, Date sale_date, List<Product> products) {
+    public Sale(UUID uuid, User user, PaymentMethod payment_method, Date sale_date) {
         super(uuid);
-        this.user_id = user_id;
+        this.user = user;
         this.payment_method = payment_method;
         this.sale_date = sale_date;
-        this.products = products;
+    }
+
+    public static double sumAmount(List<Product> products) {
+        double amount = products.stream()
+                .mapToDouble(Product::getPrice)
+                .sum();
+
+        System.out.println("\nSoma dos Produtos: " + amount);
+        return amount;
     }
 
     public UUID getUserId() {
-        return user_id;
+        return this.user.getUuid();
     }
 
     public PaymentMethod getPaymentMethod() {
-        return payment_method;
+        return this.payment_method;
     }
 
     public Date getSaleDate() {
-        return sale_date;
+        return this.sale_date;
     }
 
     public List<Product> getProducts() {
-        return products;
+        return this.products;
     }
 
     public void addProduct(Product product) {
         this.products.add(product);
     }
 
-    public void removeProduct(Product product) {
-        this.products.remove(product);
-    }
-
-    public String toString() {
-        return "Sale.toString() : Falhouu";
-    }
-
-    public double total(){
+    public double total() {
         double total = 0;
         for(Product product:products){
             total+=product.getPrice();
@@ -62,5 +64,7 @@ public class Sale extends Entity {
         return total;
     }
 
-
+    public String getUserName() {
+        return this.user.getName();
+    }
 }

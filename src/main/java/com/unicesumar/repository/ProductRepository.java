@@ -90,4 +90,23 @@ public class ProductRepository implements EntityRepository<Product> {
         }
 
     }
+
+    public List<UUID> getIdBySaleId(UUID saleId) {
+        String query = "SELECT product_id FROM sale_products WHERE sale_id = ?";
+        List<UUID> productIds = new LinkedList<>();
+
+        try {
+            PreparedStatement saleProductsStmt = this.connection.prepareStatement(query);
+            saleProductsStmt.setString(1, saleId.toString());
+            ResultSet result = saleProductsStmt.executeQuery();
+
+            while (result.next()) {
+                productIds.add(UUID.fromString(result.getString("product_id")));
+            }
+
+            return productIds;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

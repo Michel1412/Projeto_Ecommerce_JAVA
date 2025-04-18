@@ -6,6 +6,7 @@ import com.unicesumar.repository.UserRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class UserService {
 
@@ -30,5 +31,13 @@ public class UserService {
         User user = new User(dto);
 
         this.repository.save(user);
+    }
+
+    public boolean existsByEmail(String userEmail) {
+        return this.repository.existeByEmail(userEmail);
+    }
+
+    public Optional<User> findByEmail(String email) {
+        return this.repository.findByEmail(email);
     }
 }
